@@ -18,17 +18,12 @@
     />
 
     <!-- Leaflet -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-      integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
-      crossorigin=""
-    />
-    <script
-      src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-      integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
-      crossorigin=""
-    ></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ==" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js" integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw==" crossorigin=""></script>
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.Default.css" />   
 
     <!--JQuery -->
     <script
@@ -158,6 +153,17 @@
                   placeholder="Input your address"
                   required
                 ></textarea>
+                @error('address')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+              <div class="mb-1">
+                <label for="type" class="col-form-label">Type</label>
+                <select class="form-select form-select-sm @error('address') is-invalid @enderror" name="type" aria-label="Default select example">
+                  <option selected>Open this select menu</option>
+                  <option value="restaurant">Restaurant</option>
+                  <option value="marker">Marker</option>
+                </select>
                 @error('address')
                 <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -337,17 +343,31 @@
 
     <!-- Leaflet -->
     <script>
-      var map = L.map('map').setView([-8.537304773847266, 115.12583771558118], 13)
+      var map = L.map('map').setView([-8.537304773847266, 115.12583771558118], 10)
 
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "&copy; GIS",
-      }).addTo(map);
+      }).addTo(map)
+
+      if (navigator.geolocation) {
+      const location = navigator.geolocation.getCurrentPosition(
+        (position) => {
+          map.setView(
+            [position.coords.latitude, position.coords.longitude],
+            10
+          )
+        }
+      )} else {
+        alert('Geolocation is not supported by this browser.')
+      }
 
       var markerIcon = L.icon({
-        iconUrl: "map-marker.png",
+        iconUrl: "location.png",
         iconSize: [30, 30], // size of the icon
         popupAnchor: [0, -30], // point from which the popup should open relative to the iconAnchor
       });
+
+      var markerClusters = L.markerClusterGroup();
 
       function openModal(id, img, nm, tlp, ads, lt, ln) {
         document.getElementById("formUpdate").action += id;
@@ -380,39 +400,51 @@
       }
 
       @foreach ($spaces as $item)
-        L.marker([{{ $item->latitude }},{{ $item->longitude }}], {icon: markerIcon,})
+        var {{ $item->icon }} = L.icon({
+          iconUrl: "{{ $item->icon }}.png",
+          iconSize: [30, 30], // size of the icon
+          popupAnchor: [0, -30], // point from which the popup should open relative to the iconAnchor
+        });
+        
+        var marker = L.marker([{{ $item->latitude }},{{ $item->longitude }}], {icon: {{ $item->icon }},})
           .bindPopup(
-          `
-            <div class="" style="width: 18rem;">
-              <img src="/uploads/imgCover/{{ $item->image }}" class="card-img-top mt-2 cropped-image" alt="...">
-              <h6 class="pt-3 pb-1">{{$item->name}}</h6>
-              <div class="border-top border-bottom">
-                <table class="table table-borderless my-1">
-                  <tbody>
-                    <tr>
-                      <th width="10px"><i class="bi bi-telephone" style="color: rgb(59 130 246);"></i></th>
-                      <td>{{$item->telepon}}</td>
-                    </tr>
-                    <tr>
-                      <th width="10px"><i class="bi bi-geo-alt"  style="color: rgb(59 130 246);"></i></th>
-                      <td>{{$item->address}}, {{$item->latitude}}, {{$item->longitude}}</td>
-                    </tr>
-                  </tbody>
-                </table>
+            `
+              <div class="" style="width: 18rem;">
+                <img src="/uploads/imgCover/{{ $item->image }}" class="card-img-top mt-2 cropped-image" alt="...">
+                <h6 class="pt-3 pb-1">{{$item->name}}</h6>
+                <div class="border-top border-bottom">
+                  <table class="table table-borderless my-1">
+                    <tbody>
+                      <tr>
+                        <th width="10px"><i class="bi bi-telephone" style="color: rgb(59 130 246);"></i></th>
+                        <td>{{$item->telepon}}</td>
+                      </tr>
+                      <tr>
+                        <th width="10px"><i class="bi bi-geo-alt"  style="color: rgb(59 130 246);"></i></th>
+                        <td>{{$item->address}}, {{$item->latitude}}, {{$item->longitude}}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm mt-3 mb-2" onClick="openModal('{{$item->id}}', '{{$item->image}}', '{{$item->name}}', '{{$item->telepon}}', '{{$item->address}}', '{{$item->latitude}}', '{{$item->longitude}}')">
+                  Edit
+                </button>
               </div>
-              <button type="button" class="btn btn-outline-primary btn-sm mt-3 mb-2" onClick="openModal('{{$item->id}}', '{{$item->image}}', '{{$item->name}}', '{{$item->telepon}}', '{{$item->address}}', '{{$item->latitude}}', '{{$item->longitude}}')">
-                Edit
-              </button>
-            </div>
-          `
-        ).addTo(map);
-      @endforeach
+            `
+          );
+
+        markerClusters.addLayer(marker);
+        @endforeach
+
+
+        map.addLayer(markerClusters);
 
 
       var marker;
 
       var latitude = document.getElementById("latitude");
       var longitude = document.getElementById("longitude");
+      
       function onMapClick(e) {
         marker = new L.marker(e.latlng, {
           icon: markerIcon,
