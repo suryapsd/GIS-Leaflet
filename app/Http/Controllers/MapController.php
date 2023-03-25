@@ -45,6 +45,7 @@ class MapController extends Controller
             'name' => 'required',
             'telepon' => 'required',
             'address' => 'required',
+            'type' => 'required',
             'latitude' => 'required',
             'longitude' => 'required'
         ]);
@@ -65,6 +66,7 @@ class MapController extends Controller
         $data->name = $request->input('name');
         $data->telepon = $request->input('telepon');
         $data->address = $request->input('address');
+        $data->icon = $request->input('type');
         $data->latitude = $request->input('latitude');
         $data->longitude = $request->input('longitude');
 
@@ -100,7 +102,7 @@ class MapController extends Controller
      */
     public function edit(Map $map)
     {
-        //
+        $map = Map::find($id);
     }
 
     /**
@@ -118,6 +120,7 @@ class MapController extends Controller
             'mname' => 'required',
             'mtelepon' => 'required',
             'maddress' => 'required',
+            'mtype' => 'required',
             'mlatitude' => 'required',
             'mlongitude' => 'required'
         ]);
@@ -145,6 +148,7 @@ class MapController extends Controller
             'name' => $request->mname,
             'telepon' => $request->mtelepon,
             'address' => $request->maddress,
+            'icon' => $request->mtype,
             'latitude' => $request->mlatitude,
             'longitude' => $request->mlongitude,
         ]);

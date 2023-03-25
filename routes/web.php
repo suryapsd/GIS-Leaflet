@@ -29,4 +29,4 @@ Route::get('/clear-cache', function() {
 });
 
 
-Route::resource('/', MapController::class);
+Route::resource('/map', MapController::class);

@@ -44,7 +44,7 @@
       /* Style untuk crop image */
       .cropped-image {
         width: 100%;
-        height: 150px;
+        height: 100px;
         object-fit: cover;
       }
     </style>
@@ -159,12 +159,12 @@
               </div>
               <div class="mb-1">
                 <label for="type" class="col-form-label">Type</label>
-                <select class="form-select form-select-sm @error('address') is-invalid @enderror" name="type" aria-label="Default select example">
+                <select class="form-select form-select-sm @error('type') is-invalid @enderror" name="type" aria-label="Default select example">
                   <option selected>Open this select menu</option>
                   <option value="restaurant">Restaurant</option>
                   <option value="marker">Marker</option>
                 </select>
-                @error('address')
+                @error('type')
                 <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
               </div>
@@ -293,6 +293,14 @@
                 <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
               </div>
+              <div class="mb-1">
+                <label for="mtype" class="col-form-label">Type</label>
+                <select class="form-select form-select-sm @error('mtype') is-invalid @enderror" id="mtype" name="mtype" aria-label="Default select example">
+                </select>
+                @error('mtype')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
               <div class="row">
                 <div class="col mb-1">
                   <label for="latitude" class="col-form-label">Latitude</label>
@@ -369,17 +377,22 @@
 
       var markerClusters = L.markerClusterGroup();
 
-      function openModal(id, img, nm, tlp, ads, lt, ln) {
+      function openModal(id, img, nm, tlp, icn, ads, lt, ln) {
         document.getElementById("formUpdate").action += id;
+        document.getElementById("mname").value = nm;;
+        document.getElementById("mtelepon").value = tlp;
+        document.getElementById("maddress").value = ads;
+        document.getElementById("mlatitude").value = lt;
+        document.getElementById("mlongitude").value = ln;
+        if(icn == 'restaurant'){
+          $('#mtype').append('<option value="' + icn + '" selected>Restaurant</option><option value="marker">Marker</option>');
+        }else{
+          $('#mtype').append('<option value="restaurant">Restaurant</option><option value="' + icn + '" selected>Marker</option>');
+        }
+        
         const fileInput = document.getElementById("files");
-        const mname = document.getElementById("mname");
-        const mtelepon = document.getElementById("mtelepon");
-        const maddress = document.getElementById("maddress");
-        const mlatitude = document.getElementById("mlatitude");
-        const mlongitude = document.getElementById("mlongitude");
-
         console.log(fileInput.files instanceof FileList); // true even if empty
-
+        
         for (const file of fileInput.files) {
           console.log(file.name); // prints file name
           let fileDate = new Date(file.lastModified);
@@ -390,11 +403,6 @@
           console.log(file.type); // prints MIME type
         }
 
-        mname.value = nm;
-        mtelepon.value = tlp;
-        maddress.value = ads;
-        mlatitude.value = lt;
-        mlongitude.value = ln;
         $("#modalUpdate").modal("show");
         $(".navbar-collapse.in").collapse("hide");
       }
@@ -409,7 +417,7 @@
         var marker = L.marker([{{ $item->latitude }},{{ $item->longitude }}], {icon: {{ $item->icon }},})
           .bindPopup(
             `
-              <div class="" style="width: 18rem;">
+              <div class="" style="width: 12rem;">
                 <img src="/uploads/imgCover/{{ $item->image }}" class="card-img-top mt-2 cropped-image" alt="...">
                 <h6 class="pt-3 pb-1">{{$item->name}}</h6>
                 <div class="border-top border-bottom">
@@ -426,7 +434,7 @@
                     </tbody>
                   </table>
                 </div>
-                <button type="button" class="btn btn-outline-primary btn-sm mt-3 mb-2" onClick="openModal('{{$item->id}}', '{{$item->image}}', '{{$item->name}}', '{{$item->telepon}}', '{{$item->address}}', '{{$item->latitude}}', '{{$item->longitude}}')">
+                <button type="button" class="btn btn-outline-primary btn-sm mt-3 mb-2" onClick="openModal('{{$item->id}}', '{{$item->image}}', '{{$item->name}}', '{{$item->telepon}}', '{{$item->icon}}', '{{$item->address}}', '{{$item->latitude}}', '{{$item->longitude}}')">
                   Edit
                 </button>
               </div>
