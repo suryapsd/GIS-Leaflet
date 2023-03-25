@@ -14,9 +14,9 @@ use App\Http\Controllers\MapController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 Route::get('/clear-cache', function() {
     $exitCode1 = Artisan::call('cache:clear');
@@ -29,4 +29,4 @@ Route::get('/clear-cache', function() {
 });
 
 
-Route::resource('/map', MapController::class);
+Route::resource('/', MapController::class);
